@@ -8,24 +8,21 @@ class RCOUCFMFSpider(scrapy.Spider):
 		'http://www.rcuocfmf.com/',
 	]
 
-	url_matcher = re.compile('\http\:\/\/rcuocfmf\.com\/search\/label\/')
+	url_matcher = re.compile('\http\:\/\/www\.rcuocfmf\.com\/search\/label\/')
 
 	def parse(self, response):
 		link_extractor = LinkExtractor(allow=RCOUCFMFSpider.url_matcher)
 		links = [link.url for link in link_extractor.extract_links(response)]
 
 		for link in links:
-			article_links = []
-			yield scrapy.Request(url=link, callback=self.parse_articles,meta={'article_links':article_links,'flag':flag})
+			yield scrapy.Request(url=link, callback=self.parse_articles)
 
 	def parse_articles(self,response):
 		
 		post_links = response.css('div.post-outer div.post article div.post-home div.post-info h2.post-title a::attr(href)').extract()	
 		
 		for post_link in post_links:
-			if (post_link not in article_links):
-				article_links.append(post_link)
-				yield scrapy.Request(url=post_link, callback=self.extract_info)
+			yield scrapy.Request(url=post_link, callback=self.extract_info)
 
 	def extract_info(self,response):
 		yield {
